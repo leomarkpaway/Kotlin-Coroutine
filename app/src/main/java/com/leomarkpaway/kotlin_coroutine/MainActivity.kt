@@ -5,6 +5,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.leomarkpaway.kotlin_coroutine.data.source.remote.service.RetrofitInstance
+import com.leomarkpaway.kotlin_coroutine.adapter.TodoAdapter
+import com.leomarkpaway.kotlin_coroutine.databinding.ActivityMainBinding
+import com.leomarkpaway.kotlin_coroutine.data.source.remote.dto.Todo
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,17 +21,42 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import retrofit2.awaitResponse
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
 
     private lateinit var viewModel: ViewModel
     private val myScope = CoroutineScope(CoroutineName("my_scope"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         viewModel = MyViewModel()
 
+        val api = RetrofitInstance.api
+        lifecycleScope.launch(Dispatchers.IO) {
+            val response = api.getTodos().awaitResponse()
+            withContext(Dispatchers.Main) {
+                if (response.isSuccessful && response.body() != null) {
+                    setupRecyclerView(response.body()!!)
+                }
+            }
+        }
+
+        demoCoroutineScopes()
+        demoWithContext()
+        demoCoroutineJob()
+    }
+
+    private fun setupRecyclerView(todos: List<Todo>) = binding.rvTodos.apply {
+        adapter = TodoAdapter(todos)
+        layoutManager = LinearLayoutManager(this@MainActivity)
+    }
+
+    private fun demoCoroutineScopes() {
         GlobalScope.launch {
             Log.d("GlobalScope", this.coroutineContext.toString())
         }
@@ -46,9 +76,6 @@ class MainActivity : AppCompatActivity() {
             // only use for testing
             Log.d("runBlocking", this.coroutineContext.toString())
         }
-
-        demoWithContext()
-        demoCoroutineJob()
     }
 
     private fun demoWithContext() {
