@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -14,6 +15,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,7 +47,17 @@ class MainActivity : AppCompatActivity() {
             Log.d("runBlocking", this.coroutineContext.toString())
         }
 
+        demoWithContext()
         demoCoroutineJob()
+    }
+
+    private fun demoWithContext() {
+        GlobalScope.launch(Dispatchers.IO) {
+            Log.d("demoWithContext", this.coroutineContext.toString())
+            withContext(Dispatchers.Main) {
+                Log.d("demoWithContext", this.coroutineContext.toString())
+            }
+        }
     }
 
     private fun demoCoroutineJob() {
