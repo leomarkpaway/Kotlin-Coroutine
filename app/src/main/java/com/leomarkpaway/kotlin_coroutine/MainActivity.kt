@@ -8,6 +8,10 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -41,6 +45,46 @@ class MainActivity : AppCompatActivity() {
             Log.d("runBlocking", this.coroutineContext.toString())
         }
 
+        demoCoroutineJob()
+    }
+
+    private fun demoCoroutineJob() {
+        myScope.launch {
+            val job1 = launch {
+                while (isActive) {
+                    Log.d("job1", "Job 1 Running ... ")
+
+                }
+            }
+            Log.d("job1", "Canceling ... ")
+            job1.cancel()
+            job1.join()
+            Log.d("job1", "Job 1 CANCELED!")
+
+            val job2 = launch {
+                while (true) {
+                    ensureActive()
+                    Log.d("job2", "Job 2 Running ... ")
+
+                }
+            }
+            delay(2000L)
+            Log.d("job2", "Canceling ... ")
+            job2.cancel()
+            job2.join()
+            Log.d("job2", "Job 2 CANCELED!")
+
+            val job3 = launch {
+                while (true) {
+                    Log.d("job3", "Job 3 Running ... ")
+                    delay(1000L)
+                }
+            }
+            delay(5000L)
+            Log.d("job3", "Canceling ... ")
+            job3.cancelAndJoin()
+            Log.d("job3", "Job 3 CANCELED!")
+        }
     }
 
 }
